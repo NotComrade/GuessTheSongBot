@@ -1,7 +1,7 @@
 import json
-
 import discord
 from discord.ext import commands
+from discord import ui
 
 with open("config.json") as f:
     config = json.load(f)
@@ -16,13 +16,21 @@ bot = commands.Bot(
     intents=discord.Intents.all(),
 )
 
+class VerifiedView(ui.View):
+    def __init__(self, author):
+        super().__init__()
+        self.author = author
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if interaction.user != self.author:
+            await interaction.response.send_message("This isn't your game! Run /guess to start your own.", ephemeral=True)
+            return False
+        return True
 
 @bot.event
 async def on_ready():
     print("Ready!")
-    synced = await bot.tree.sync()
-    print(f"Synced {len(synced)} commands")
-
+    await bot.tree.sync()
 
 @bot.tree.command(
     name="guess",
@@ -31,22 +39,29 @@ async def on_ready():
 async def guess(interaction: discord.Interaction):
     embed = discord.Embed(
         title="🎵 Guess the Song",
-        description=(
-            "Ready to test your music knowledge? \n"
-            "**Available Categories:**\n"
-        ),
+        description="Select a Mode below:",
         color=discord.Color.green()
     )
-    categories = [
-        "**Artist**",
-        "**Album**",
-        "**Liked Songs**",
-        "**Playlist**",
-        "**Trending Songs**"
-    ]
-    embed.add_field(name="Select a Mode", value="\n".join(categories), inline=False)
-    embed.set_footer(text="Interactive buttons coming soon...")
-    await interaction.response.send_message(embed=embed)
+    
+    view = VerifiedView(author=interaction.user)
 
+    select = ui.Select(
+        placeholder="Choose a category...",
+        options=[
+            discord.SelectOption(label="Artist"),
+            discord.SelectOption(label="Album"),
+            discord.SelectOption(label="Liked Songs"),
+            discord.SelectOption(label="Playlist"),
+            discord.SelectOption(label="Trending Songs")
+        ]
+    )
+    
+    async def callback(interaction: discord.Interaction):
+        await interaction.response.send_message(f"You selected {select.values[0]}", ephemeral=True)
+
+    select.callback = callback
+    view.add_item(select)
+    
+    await interaction.response.send_message(embed=embed, view=view)
 
 bot.run(TOKEN)
