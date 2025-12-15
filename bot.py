@@ -1,4 +1,5 @@
 import json
+import random
 import discord
 from discord.ext import commands
 from discord import ui
@@ -27,6 +28,20 @@ class VerifiedView(ui.View):
             return False
         return True
 
+class CategoryButton(ui.Button):
+    def __init__(self, label):
+        styles = [
+            discord.ButtonStyle.primary,
+            discord.ButtonStyle.success,
+            discord.ButtonStyle.danger,
+            discord.ButtonStyle.secondary
+        ]
+        random_style = random.choice(styles)
+        super().__init__(label=label, style=random_style)
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.send_message(f"You selected {self.label}", ephemeral=True)
+
 @bot.event
 async def on_ready():
     print("Ready!")
@@ -45,22 +60,10 @@ async def guess(interaction: discord.Interaction):
     
     view = VerifiedView(author=interaction.user)
 
-    select = ui.Select(
-        placeholder="Choose a category...",
-        options=[
-            discord.SelectOption(label="Artist"),
-            discord.SelectOption(label="Album"),
-            discord.SelectOption(label="Liked Songs"),
-            discord.SelectOption(label="Playlist"),
-            discord.SelectOption(label="Trending Songs")
-        ]
-    )
-    
-    async def callback(interaction: discord.Interaction):
-        await interaction.response.send_message(f"You selected {select.values[0]}", ephemeral=True)
+    categories = ["Artist", "Album", "Liked Songs", "Playlist", "Trending Songs"]
 
-    select.callback = callback
-    view.add_item(select)
+    for category in categories:
+        view.add_item(CategoryButton(label=category))
     
     await interaction.response.send_message(embed=embed, view=view)
 
