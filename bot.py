@@ -53,7 +53,7 @@ async def on_ready():
 )
 async def guess(interaction: discord.Interaction):
     embed = discord.Embed(
-        title="🎵 Guess the Song",
+        title= "Guess the Song",
         description="Select a Mode below:",
         color=discord.Color.green()
     )
