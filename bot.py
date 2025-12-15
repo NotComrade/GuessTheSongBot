@@ -29,7 +29,24 @@ async def on_ready():
     description="Guess the song from the lyrics. Requires spotify oauth connection.",
 )
 async def guess(interaction: discord.Interaction):
-    await interaction.response.send_message("To be implemented...")
+    embed = discord.Embed(
+        title="🎵 Guess the Song",
+        description=(
+            "Ready to test your music knowledge? \n"
+            "**Available Categories:**\n"
+        ),
+        color=discord.Color.green()
+    )
+    categories = [
+        "**Artist**",
+        "**Album**",
+        "**Liked Songs**",
+        "**Playlist**",
+        "**Trending Songs**"
+    ]
+    embed.add_field(name="Select a Mode", value="\n".join(categories), inline=False)
+    embed.set_footer(text="Interactive buttons coming soon...")
+    await interaction.response.send_message(embed=embed)
 
 
 bot.run(TOKEN)
